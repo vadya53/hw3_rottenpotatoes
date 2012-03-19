@@ -25,6 +25,17 @@ Then /I should see "(.*)" before "(.*)"/ do |e1, e2|
   #assert false, "Unimplmemented"
 end
 
+Then /I should see all of the movies/ do
+  movies = Movie.all
+  movies_count = movies.count
+  page_count = page.all(:xpath,"//table/tbody/tr").count
+  assert movies_count == page_count, "There is "+movies_count.to_s+" movie(s) in DB, but only "+page_count.to_s+" is visible"
+  movies.each do |movie|
+    movie_title = movie["title"]
+    assert !page.body.index(movie_title).nil?, "Movie \""+movie_title+"\" not found!"
+  end
+end
+
 # Make it easier to express checking or unchecking several boxes at once
 #  "When I uncheck the following ratings: PG, G, R"
 #  "When I check the following ratings: G"
@@ -33,4 +44,23 @@ When /I (un)?check the following ratings: (.*)/ do |uncheck, rating_list|
   # HINT: use String#split to split up the rating_list, then
   #   iterate over the ratings and reuse the "When I check..." or
   #   "When I uncheck..." steps in lines 89-95 of web_steps.rb
+  ratings = rating_list.split(/,\s*/)
+  ratings.each do |rating|
+    if (uncheck)
+      uncheck("ratings_"+rating)
+    else
+      check("ratings_"+rating)
+    end
+  end
+end
+
+When /I (un)?check all of the ratings/ do |uncheck|
+  ratings = Movie.all_ratings
+  ratings.each do |rating|
+    if (uncheck)
+      uncheck("ratings_"+rating)
+    else
+      check("ratings_"+rating)
+    end
+  end
 end
